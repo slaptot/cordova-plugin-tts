@@ -92,6 +92,10 @@ public class TTS extends CordovaPlugin implements OnInitListener {
 
     private void speak(JSONArray args, CallbackContext callbackContext)
             throws JSONException, NullPointerException {
+        if(tts.isSpeaking()){
+            tts.stop();
+            }
+
         JSONObject params = args.getJSONObject(0);
 
         if (params == null) {
@@ -114,7 +118,7 @@ public class TTS extends CordovaPlugin implements OnInitListener {
             locale = "en-US";
         } else {
             locale = params.getString("locale");
-        }
+        }cor
 
         if (params.isNull("rate")) {
             rate = 1.0;

@@ -35,6 +35,9 @@
 }
 
 - (void)speak:(CDVInvokedUrlCommand*)command {
+    if (synthesizer.isSpeaking)
+        [synthesizer stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
+
     [[AVAudioSession sharedInstance] setActive:NO withOptions:0 error:nil];
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback
       withOptions:AVAudioSessionCategoryOptionDuckOthers error:nil];
