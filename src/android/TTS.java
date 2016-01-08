@@ -94,55 +94,56 @@ public class TTS extends CordovaPlugin implements OnInitListener {
             throws JSONException, NullPointerException {
         if(tts.isSpeaking()){
             tts.stop();
+        }else{
+
+            JSONObject params = args.getJSONObject(0);
+
+            if (params == null) {
+                callbackContext.error(ERR_INVALID_OPTIONS);
+                return;
             }
 
-        JSONObject params = args.getJSONObject(0);
+            String text;
+            String locale;
+            double rate;
 
-        if (params == null) {
-            callbackContext.error(ERR_INVALID_OPTIONS);
-            return;
+            if (params.isNull("text")) {
+                callbackContext.error(ERR_INVALID_OPTIONS);
+                return;
+            } else {
+                text = params.getString("text");
+            }
+
+            if (params.isNull("locale")) {
+                locale = "en-US";
+            } else {
+                locale = params.getString("locale");
+            }
+
+            if (params.isNull("rate")) {
+                rate = 1.0;
+            } else {
+                rate = params.getDouble("rate");
+            }
+
+            if (tts == null) {
+                callbackContext.error(ERR_ERROR_INITIALIZING);
+                return;
+            }
+
+            if (!ttsInitialized) {
+                callbackContext.error(ERR_NOT_INITIALIZED);
+                return;
+            }
+
+            HashMap<String, String> ttsParams = new HashMap<String, String>();
+            ttsParams.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, callbackContext.getCallbackId());
+
+            String[] localeArgs = locale.split("-");
+            tts.setLanguage(new Locale(localeArgs[0], localeArgs[1]));
+            tts.setSpeechRate((float) rate);
+
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, ttsParams);
         }
-
-        String text;
-        String locale;
-        double rate;
-
-        if (params.isNull("text")) {
-            callbackContext.error(ERR_INVALID_OPTIONS);
-            return;
-        } else {
-            text = params.getString("text");
-        }
-
-        if (params.isNull("locale")) {
-            locale = "en-US";
-        } else {
-            locale = params.getString("locale");
-        }cor
-
-        if (params.isNull("rate")) {
-            rate = 1.0;
-        } else {
-            rate = params.getDouble("rate");
-        }
-
-        if (tts == null) {
-            callbackContext.error(ERR_ERROR_INITIALIZING);
-            return;
-        }
-
-        if (!ttsInitialized) {
-            callbackContext.error(ERR_NOT_INITIALIZED);
-            return;
-        }
-
-        HashMap<String, String> ttsParams = new HashMap<String, String>();
-        ttsParams.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, callbackContext.getCallbackId());
-
-        String[] localeArgs = locale.split("-");
-        tts.setLanguage(new Locale(localeArgs[0], localeArgs[1]));
-        tts.setSpeechRate((float) rate);
-
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, ttsParams);
     }
 }

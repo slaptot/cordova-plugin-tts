@@ -35,41 +35,43 @@
 }
 
 - (void)speak:(CDVInvokedUrlCommand*)command {
-    if (synthesizer.isSpeaking)
+    if (synthesizer.isSpeaking){
+        [synthesizer stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
+    }else{
+
+        [[AVAudioSession sharedInstance] setActive:NO withOptions:0 error:nil];
+        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback
+          withOptions:AVAudioSessionCategoryOptionDuckOthers error:nil];
+
+        if (callbackId) {
+            lastCallbackId = callbackId;
+        }
+
+        callbackId = command.callbackId;
+
         [synthesizer stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
 
-    [[AVAudioSession sharedInstance] setActive:NO withOptions:0 error:nil];
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback
-      withOptions:AVAudioSessionCategoryOptionDuckOthers error:nil];
+        NSDictionary* options = [command.arguments objectAtIndex:0];
 
-    if (callbackId) {
-        lastCallbackId = callbackId;
+        NSString* text = [options objectForKey:@"text"];
+        NSString* locale = [options objectForKey:@"locale"];
+        double rate = [[options objectForKey:@"rate"] doubleValue];
+
+        if (!locale || (id)locale == [NSNull null]) {
+            locale = @"en-US";
+        }
+
+        if (!rate) {
+            rate = 1.0;
+        }
+
+        AVSpeechUtterance* utterance = [[AVSpeechUtterance new] initWithString:text];
+        utterance.voice = [AVSpeechSynthesisVoice voiceWithLanguage:locale];
+        // Rate expression adjusted manually for a closer match to other platform.
+        utterance.rate = (AVSpeechUtteranceMinimumSpeechRate * 1.5 + AVSpeechUtteranceDefaultSpeechRate) / 2.5 * rate * rate;
+        utterance.pitchMultiplier = 1.2;
+        [synthesizer speakUtterance:utterance];
     }
-    
-    callbackId = command.callbackId;
-    
-    [synthesizer stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
-    
-    NSDictionary* options = [command.arguments objectAtIndex:0];
-    
-    NSString* text = [options objectForKey:@"text"];
-    NSString* locale = [options objectForKey:@"locale"];
-    double rate = [[options objectForKey:@"rate"] doubleValue];
-    
-    if (!locale || (id)locale == [NSNull null]) {
-        locale = @"en-US";
-    }
-    
-    if (!rate) {
-        rate = 1.0;
-    }
-    
-    AVSpeechUtterance* utterance = [[AVSpeechUtterance new] initWithString:text];
-    utterance.voice = [AVSpeechSynthesisVoice voiceWithLanguage:locale];
-    // Rate expression adjusted manually for a closer match to other platform.
-    utterance.rate = (AVSpeechUtteranceMinimumSpeechRate * 1.5 + AVSpeechUtteranceDefaultSpeechRate) / 2.5 * rate * rate;
-    utterance.pitchMultiplier = 1.2;
-    [synthesizer speakUtterance:utterance];
 }
 
 @end
