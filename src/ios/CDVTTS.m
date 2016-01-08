@@ -35,7 +35,10 @@
 }
 
 - (void)speak:(CDVInvokedUrlCommand*)command {
-    if (synthesizer.isSpeaking){
+    if([synthesizer isSpeaking]) {
+        [synthesizer stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
+        AVSpeechUtterance *utterance = [AVSpeechUtterance speechUtteranceWithString:@""];
+        [synthesizer speakUtterance:utterance];
         [synthesizer stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
     }else{
 
@@ -67,11 +70,27 @@
 
         AVSpeechUtterance* utterance = [[AVSpeechUtterance new] initWithString:text];
         utterance.voice = [AVSpeechSynthesisVoice voiceWithLanguage:locale];
+      //  AVSpeechUtterance* utterance = [[AVSpeechUtterance new] initWithString:text];
+      //          utterance.voice = [AVSpeechSynthesisVoice voiceWithLanguage:locale];
+                // Rate expression adjusted manually for a closer match to other platform.
+      //          utterance.rate = (AVSpeechUtteranceMinimumSpeechRate * 1.5 + AVSpeechUtteranceDefaultSpeechRate) / 2.5 * rate * rate;
+      //          utterance.pitchMultiplier = 1.2;
+      //          [synthesizer speakUtterance:utterance];
+
+
         // Rate expression adjusted manually for a closer match to other platform.
-        utterance.rate = (AVSpeechUtteranceMinimumSpeechRate * 1.5 + AVSpeechUtteranceDefaultSpeechRate) / 2.5 * rate * rate;
-        utterance.pitchMultiplier = 1.2;
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] > 8.5) {
+            [utterance setRate:0.5f];
+        } else {
+            [utterance setRate:0.1f];
+        }
+
+
         [synthesizer speakUtterance:utterance];
     }
 }
 
 @end
+
+
+
